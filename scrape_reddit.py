@@ -9,18 +9,22 @@ def run():
         context = browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         )
+        
+        # Bypass the 18+ NSFW warning gate that blocks feeds!
+        context.add_cookies([
+            {"name": "over18", "value": "1", "domain": ".reddit.com", "path": "/"},
+            {"name": "over18", "value": "1", "domain": "old.reddit.com", "path": "/"}
+        ])
+        
         page = context.new_page()
         
         posts = set()
         
-        # We will hit 6 completely different feeds to guarantee we find 250 text-heavy posts
-        # This reverts to the visual HTML parsing which we know successfully extracted posts!
         urls = [
+            "https://old.reddit.com/r/horror/top/?sort=top&t=all",
+            "https://old.reddit.com/r/horror/top/?sort=top&t=year",
             "https://old.reddit.com/r/horror/new/",
             "https://old.reddit.com/r/horror/hot/",
-            "https://old.reddit.com/r/horror/top/?sort=top&t=month",
-            "https://old.reddit.com/r/horror/top/?sort=top&t=year",
-            "https://old.reddit.com/r/horror/top/?sort=top&t=all",
             "https://old.reddit.com/r/horror/controversial/?sort=controversial&t=all"
         ]
         
@@ -28,11 +32,20 @@ def run():
             print(f"\nNavigating to {url}...")
             page.goto(url)
             
-            for i in range(10):  # Scrape up to 10 pages per feed
+            for i in range(12):  # Scrape up to 12 pages per feed
                 print(f"Scraping page {i+1}...")
                 time.sleep(1.5)
                 
-                # Expand all text posts on the page to read their bodies
+                # Check for NSFW warning button just in case cookie isn't enough
+                try:
+                    nsfw_btn = page.locator("button[name='over18'][value='yes']")
+                    if nsfw_btn.count() > 0:
+                        nsfw_btn.first.click()
+                        time.sleep(1)
+                except:
+                    pass
+                
+                # Expand all text posts
                 expandos = page.locator("div.expando-button.selftext")
                 for j in range(expandos.count()):
                     try:
@@ -41,7 +54,6 @@ def run():
                     except:
                         pass
                 
-                # Grab titles and the expanded text bodies
                 entries = page.locator("div.entry")
                 for j in range(entries.count()):
                     entry = entries.nth(j)
@@ -63,12 +75,12 @@ def run():
                 if len(posts) >= 250:
                     break
                 
-                # Click the 'next' button
                 next_btn = page.locator("span.next-button a")
                 if next_btn.count() > 0:
-                    next_url = next_btn.get_attribute("href")
+                    next_url = next_btn.first.get_attribute("href")
                     page.goto(next_url)
                 else:
+                    print("No 'next' button found, moving to next feed.")
                     break
             
             if len(posts) >= 250:
