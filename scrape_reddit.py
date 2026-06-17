@@ -1,6 +1,5 @@
 from playwright.sync_api import sync_playwright
 import csv
-import json
 import time
 
 def run():
@@ -14,50 +13,64 @@ def run():
         
         posts = set()
         
-        # Hitting the JSON endpoints directly through the browser context!
-        endpoints = [
-            "https://old.reddit.com/r/horror/top.json?t=all&limit=100",
-            "https://old.reddit.com/r/horror/top.json?t=year&limit=100",
-            "https://old.reddit.com/r/horror/hot.json?limit=100",
-            "https://old.reddit.com/r/horror/controversial.json?t=all&limit=100"
+        # We will hit 6 completely different feeds to guarantee we find 250 text-heavy posts
+        # This reverts to the visual HTML parsing which we know successfully extracted posts!
+        urls = [
+            "https://old.reddit.com/r/horror/new/",
+            "https://old.reddit.com/r/horror/hot/",
+            "https://old.reddit.com/r/horror/top/?sort=top&t=month",
+            "https://old.reddit.com/r/horror/top/?sort=top&t=year",
+            "https://old.reddit.com/r/horror/top/?sort=top&t=all",
+            "https://old.reddit.com/r/horror/controversial/?sort=controversial&t=all"
         ]
         
-        for base_url in endpoints:
-            after = None
-            for i in range(5):  # 5 pages of 100 = 500 posts per endpoint
-                url = base_url
-                if after:
-                    url += f"&after={after}"
-                    
-                print(f"Fetching JSON from {url}...")
-                page.goto(url)
-                time.sleep(2)
+        for url in urls:
+            print(f"\nNavigating to {url}...")
+            page.goto(url)
+            
+            for i in range(10):  # Scrape up to 10 pages per feed
+                print(f"Scraping page {i+1}...")
+                time.sleep(1.5)
                 
-                try:
-                    content = page.evaluate("document.body.innerText")
-                    data = json.loads(content)
-                    
-                    children = data.get("data", {}).get("children", [])
-                    for child in children:
-                        post_data = child.get("data", {})
-                        title = post_data.get("title", "")
-                        body = post_data.get("selftext", "")
+                # Expand all text posts on the page to read their bodies
+                expandos = page.locator("div.expando-button.selftext")
+                for j in range(expandos.count()):
+                    try:
+                        expandos.nth(j).click()
+                        time.sleep(0.3)
+                    except:
+                        pass
+                
+                # Grab titles and the expanded text bodies
+                entries = page.locator("div.entry")
+                for j in range(entries.count()):
+                    entry = entries.nth(j)
+                    try:
+                        title = entry.locator("a.title").inner_text()
+                        body = ""
+                        if entry.locator("div.usertext-body").count() > 0:
+                            body = entry.locator("div.usertext-body").inner_text()
                         
                         text = f"{title} - {body}".replace('\n', ' ').replace('\r', ' ').strip()
                         
                         if len(text) > 100:
                             posts.add(text)
-                            
-                    after = data.get("data", {}).get("after")
-                    print(f"Total collected: {len(posts)}")
-                    
-                    if not after or len(posts) >= 250:
-                        break
+                    except Exception:
+                        continue
                         
-                except Exception as e:
-                    print(f"Failed to parse JSON: {e}")
+                print(f"Total collected so far: {len(posts)}")
+                
+                if len(posts) >= 250:
                     break
-                    
+                
+                # Click the 'next' button
+                next_btn = page.locator("span.next-button a")
+                if next_btn.count() > 0:
+                    next_url = next_btn.get_attribute("href")
+                    page.goto(next_url)
+                else:
+                    break
+            
             if len(posts) >= 250:
                 print("\nReached target of 250 posts! Stopping scraper.")
                 break
