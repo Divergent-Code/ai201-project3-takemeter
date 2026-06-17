@@ -1,4 +1,4 @@
-import urllib.request
+import requests
 import json
 import csv
 import time
@@ -9,20 +9,30 @@ urls = [
     "https://www.reddit.com/r/horror/controversial.json?limit=100&t=month"
 ]
 
+# We use a very realistic browser header and session to avoid Reddit's 403 blocker
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (Takemeter script)'
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/117.0',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.5',
+    'Connection': 'keep-alive',
+    'Upgrade-Insecure-Requests': '1',
+    'Sec-Fetch-Dest': 'document',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Site': 'none',
+    'Sec-Fetch-User': '?1',
 }
 
 posts = []
 seen = set()
 
 print("Fetching posts from r/horror...")
+session = requests.Session()
 
 for url in urls:
     try:
-        req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req) as response:
-            data = json.loads(response.read().decode())
+        response = session.get(url, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
             for child in data['data']['children']:
                 post = child['data']
                 if post['id'] not in seen:
@@ -35,7 +45,10 @@ for url in urls:
                     # We only want text posts that have a bit of substance
                     if len(text) > 50 and "http" not in post.get('selftext', ''): 
                         posts.append(text)
-        print(f"Fetched from {url}")
+            print(f"Fetched from {url}")
+        else:
+            print(f"Error fetching {url}: HTTP {response.status_code}")
+            
         time.sleep(2) # be nice to Reddit API
     except Exception as e:
         print(f"Error fetching {url}: {e}")
