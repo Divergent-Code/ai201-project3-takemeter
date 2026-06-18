@@ -1,3 +1,19 @@
+---
+{
+  "id": "file_1vnbr3bm",
+  "filetype": "document",
+  "filename": "AGENTS",
+  "created_at": "2026-06-18T04:42:44.390Z",
+  "updated_at": "2026-06-18T04:42:44.390Z",
+  "meta": {
+    "location": "/",
+    "tags": [],
+    "categories": [],
+    "description": "",
+    "source": "markdown"
+  }
+}
+---
 # TakeMeter — AI201 Project 3
 
 ## Project overview

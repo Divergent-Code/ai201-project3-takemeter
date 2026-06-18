@@ -1,3 +1,19 @@
+---
+{
+  "id": "file_u7k32mym",
+  "filetype": "document",
+  "filename": "planning",
+  "created_at": "2026-06-18T04:43:14.431Z",
+  "updated_at": "2026-06-18T04:43:14.431Z",
+  "meta": {
+    "location": "/",
+    "tags": [],
+    "categories": [],
+    "description": "",
+    "source": "markdown"
+  }
+}
+---
 # TakeMeter Planning: r/horror & r/HorrorLit
 
 ## 1. Community
