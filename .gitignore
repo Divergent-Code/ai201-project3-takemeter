@@ -12,6 +12,8 @@ venv/
 
 # IDEs and Editors
 .vscode/
+.cursor/
+.codex/
 .idea/
 *.swp
 *.swo
