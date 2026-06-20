@@ -78,7 +78,7 @@ No label exceeds 70%; the smallest class is 29%.
 
 **Key hyperparameter decision — epochs.**
 
-> *After running Section 3, fill this in with what you observed.* Suggested framing: with only \~152 training examples, more epochs risks memorizing rather than learning the argued-vs-asserted boundary. Report whether you kept 3 epochs or adjusted, and cite the validation-loss trend (e.g. "val loss flattened/rose after epoch N, so I kept/reduced epochs").
+Kept 3 epochs (default). Val loss fell 1.085 → 1.066 → 1.033 and val accuracy moved 39.4% → 39.4% → 42.4% across epochs 1–3. The epoch-1 val loss of 1.085 is essentially log(3) ≈ 1.099 — the expected loss from uniform random guessing on a 3-class problem — confirming the model barely escaped random performance from the start. Val loss was still declining at epoch 3 with no sign of overfitting, so the problem was not too many epochs: 152 training examples was simply too few for DistilBERT to internalize the argued-vs-asserted distinction. Accuracy was flat epochs 1→2, gained ~3 points at epoch 3; best checkpoint is epoch 3.
 
 ## 5. Baseline (Claude Haiku zero-shot)
 
@@ -94,20 +94,20 @@ No label exceeds 70%; the smallest class is 29%.
 
 | Model | Test accuracy |
 | :--- | :--- |
-| Claude Haiku `claude-haiku-4-5-20251001` (zero-shot) | *TODO* |
-| Fine-tuned DistilBERT | *TODO* |
+| Claude Haiku `claude-haiku-4-5-20251001` (zero-shot) | 0.788 |
+| Fine-tuned DistilBERT | 0.394 |
 
 ### Per-class metrics (fine-tuned model)
 
 | Label | Precision | Recall | F1 |
 | :--- | :--- | :--- | :--- |
-| critical_analysis | *TODO* | *TODO* | *TODO* |
-| visceral_reaction | *TODO* | *TODO* | *TODO* |
-| hot_take | *TODO* | *TODO* | *TODO* |
+| critical_analysis | 0.39 | 1.00 | 0.57 |
+| visceral_reaction | 0.00 | 0.00 | 0.00 |
+| hot_take | 0.00 | 0.00 | 0.00 |
 
 ### Confusion matrix
 
-> Paste `confusion_matrix.png` here and state which off-diagonal cell dominates. Hypothesis to test: `critical_analysis ↔ hot_take` is the heaviest confusion, because the only difference between them is whether the claim is *argued* or merely *asserted* — a distinction that hinges on content the model may not weigh heavily.
+The model predicted `critical_analysis` for all 33 test examples — a total collapse to the majority class. Every `visceral_reaction` (11) and every `hot_take` (9) was misclassified as `critical_analysis`; only the 13 true `critical_analysis` examples were correctly identified. The pre-experiment hypothesis (heaviest confusion would be `critical_analysis ↔ hot_take`) proved too optimistic: the model doesn't confuse labels selectively at all — it simply ignores label distinctions entirely.
 
 ![Confusion matrix](confusion_matrix.png)
 
@@ -115,9 +115,11 @@ No label exceeds 70%; the smallest class is 29%.
 
 > Pick 3 misclassified test examples from the notebook. For each, go past "it got it wrong": name the true vs. predicted label, then explain *why* using the guiding lens — is it the argued-vs-asserted boundary, a short/low-info post, sarcasm, or a topic that signals one label while the structure signals another? Note whether it's a labeling issue or a data/boundary issue.
 
-1. *TODO*
-2. *TODO*
-3. *TODO*
+1. **True: `visceral_reaction` → Predicted: `critical_analysis`** (confidence 0.37): *"You know what I love? That creeping sense that something isn't right. Something is terribly out of place and unraveling the mystery is just as fun as the moment of reveal."* Textbook visceral_reaction — describes a felt aesthetic preference, no argument about any specific work, no evidence. The model defaulted to critical_analysis despite zero analytical structure. The low confidence (0.37) signals uncertainty, but even maximally ambiguous examples were pulled toward critical_analysis. Root cause: the model isn't assessing the *absence* of argument; it may key on the structured, introspective phrasing rather than actual evidentiary content. Not a labeling issue — clear visceral_reaction by the taxonomy.
+
+2. **True: `hot_take` → Predicted: `critical_analysis`** (confidence 0.38): *"Ugh. I'm doing it. Fuck it. The original TV miniseries adaptation of 'IT' was complete and total garbage and frankly, was an insult to the book."* Archetypal hot_take — blunt quality verdict ("complete and total garbage"), zero supporting evidence, heavy emotional framing ("Ugh," "Fuck it"). This is exactly the argued-vs-asserted boundary the taxonomy is built on, and the model failed it completely. Root cause: the model cannot detect the absence of argument, which is the core skill required to separate hot_take from critical_analysis. Not a labeling issue.
+
+3. **True: `hot_take` → Predicted: `critical_analysis`** (confidence 0.44): *"The movie Drag Me To Hell is highly underrated — the movie has everything: it never goes over the top or gets cringe..."* The hardest of the three. The post supplies light reasoning ("it has everything," "never goes over the top") but the reasons are vague and the core claim is a quality judgment with no specific textual or thematic evidence. By the taxonomy rules this is hot_take (the support is decorative, not substantive). The model's highest-confidence wrong hot_take prediction (0.44) suggests the reasoning-like fragments carried disproportionate weight — the model latched onto surface markers of analysis rather than assessing whether the support was genuine. This is a data/boundary issue: more examples of light-reasoning hot_takes in training might have helped.
 
 ### Sample classifications (fine-tuned model)
 
@@ -125,11 +127,18 @@ No label exceeds 70%; the smallest class is 29%.
 
 | Post (truncated) | Predicted | Confidence | Note |
 | :--- | :--- | :--- | :--- |
-| *TODO* | *TODO* | *TODO* | *TODO* |
+| "The Descent isn't just a monster movie — the cave is a physical manifestation of Sarah's grief..." | critical_analysis | 0.36 | Correct. The post ties a specific filmic element (cave geometry) to a thematic mechanic (grief/recovery) — exactly argued analysis. |
+| "Just finished Hereditary for the first time. I literally could not breathe during the attic scene..." | critical_analysis | 0.37 | Wrong — true label is `visceral_reaction`. Pure felt experience, no argument about craft or theme. |
+| "Midsommar is the most overrated A24 film, period. Beautiful to look at, but completely hollow." | critical_analysis | 0.35 | Wrong — true label is `hot_take`. Bold quality judgment with no supporting evidence. |
+| "What I love about Shirley Jackson is how she weaponizes domesticity — the house in Hill House isn't just haunted, it's a trap built from the architecture of repression." | critical_analysis | 0.36 | Correct. The post argues that the house's horror is structurally tied to domestic repression — a specific thematic claim with evidence. |
 
 ### Reflection: what the model learned vs. what I intended
 
-> *Write after seeing results.* The intent was a classifier that keys on *whether a claim is supported*. A likely gap: the model may instead key on **surface features** — exclamation marks and first-person emotion words → `visceral_reaction`; superlatives ("best", "overrated") → `hot_take`; length and paragraph structure → `critical_analysis`— rather than actually assessing argument quality. Use the confusion matrix and the 3 errors to argue which specific proxy the model latched onto.
+The intent was a classifier that keys on *whether a claim is argued* — supported by specific evidence — vs. *asserted* (stated without support) or *reacted to* (focused on felt experience). The confusion matrix reveals the model learned something much simpler: **predict `critical_analysis` for almost everything.**
+
+The likely proxy the model latched onto is **length and lexical structure**. Critical_analysis posts tend to be longer, more elaborately constructed, and contain explicit references to craft or theme. With only 152 training examples and 3 epochs, DistilBERT appears to have learned to predict `critical_analysis` whenever a post reaches a certain length or complexity — regardless of whether the claims are actually supported. Evidence: error #1 (a short, clearly emotional post about "that creeping sense") and error #2 ("complete and total garbage" with zero evidence) were both predicted as critical_analysis, even though neither resembles an argument.
+
+The baseline (Claude Haiku, 78.8%) shows the argued-vs-asserted distinction *is* learnable — a large pretrained LLM with broad language understanding can apply it zero-shot. The fine-tuned model's failure is a data-size problem: 152 examples was not enough for DistilBERT to internalize a distinction that requires understanding argument structure, not just surface vocabulary or post length.
 
 ## 7. Spec Reflection
 
