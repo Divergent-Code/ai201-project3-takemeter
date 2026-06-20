@@ -16,7 +16,7 @@
 ---
 # TakeMeter — Classifying Discourse Quality in Horror Communities
 
-A fine-tuned text classifier that sorts horror-community posts by **discourse quality**: is a take an *argued analysis*, a *felt reaction*, or a *bare hot take*? Built on `distilbert-base-uncased`, fine-tuned on 217 hand-reviewed Reddit posts, and benchmarked against a Groq `llama-3.3-70b-versatile` zero-shot baseline.
+A fine-tuned text classifier that sorts horror-community posts by **discourse quality**: is a take an *argued analysis*, a *felt reaction*, or a *bare hot take*? Built on `distilbert-base-uncased`, fine-tuned on 217 hand-reviewed Reddit posts, and benchmarked against a Claude Haiku (`claude-haiku-4-5-20251001`) zero-shot baseline.
 
 > Companion docs: design reasoning and edge-case rules live in `planning.md`. This README is the standalone final report.
 
@@ -73,17 +73,17 @@ No label exceeds 70%; the smallest class is 29%.
 ## 4. Fine-Tuning
 
 - **Base model:** `distilbert-base-uncased` (HuggingFace).
-- **Platform:** Google Colab, free **T4 GPU**, using the provided starter notebook (`Copy of ai201_project3_takemeter_starter_clean.ipynb`). The notebook's `LABEL_MAP`and Groq `SYSTEM_PROMPT` are pre-filled for this 3-label taxonomy.
+- **Platform:** Google Colab, free **T4 GPU**, using the provided starter notebook (`Copy of ai201_project3_takemeter_starter_clean.ipynb`). The notebook's `LABEL_MAP` and `SYSTEM_PROMPT` are pre-filled for this 3-label taxonomy.
 - **Training setup:** *(defaults unless noted)* 3 epochs, learning rate 2e-5, batch size 16, `distilbert-base-uncased` sequence-classification head with 3 output labels.
 
 **Key hyperparameter decision — epochs.**
 
 > *After running Section 3, fill this in with what you observed.* Suggested framing: with only \~152 training examples, more epochs risks memorizing rather than learning the argued-vs-asserted boundary. Report whether you kept 3 epochs or adjusted, and cite the validation-loss trend (e.g. "val loss flattened/rose after epoch N, so I kept/reduced epochs").
 
-## 5. Baseline (Groq zero-shot)
+## 5. Baseline (Claude Haiku zero-shot)
 
-- **Model:** `llama-3.3-70b-versatile` via Groq, no task-specific training.
-- **Prompt:** the §2 label definitions + one example per label, instructing the model to output only the label name (see notebook Section 5 / cell 20). Each test post is classified independently; unparseable responses are flagged by the notebook.
+- **Model:** `claude-haiku-4-5-20251001` via Anthropic API, no task-specific training.
+- **Prompt:** the §2 label definitions + one example per label, instructing the model to output only the label name (see notebook Section 5). Each test post is classified independently; unparseable responses are flagged by the notebook.
 - **How results were collected:** run on the **same locked test split** as the fine-tuned model, before fine-tuning, so the comparison is apples-to-apples.
 
 ## 6. Evaluation Report
@@ -94,7 +94,7 @@ No label exceeds 70%; the smallest class is 29%.
 
 | Model | Test accuracy |
 | :--- | :--- |
-| Groq `llama-3.3-70b-versatile` (zero-shot) | *TODO* |
+| Claude Haiku `claude-haiku-4-5-20251001` (zero-shot) | *TODO* |
 | Fine-tuned DistilBERT | *TODO* |
 
 ### Per-class metrics (fine-tuned model)
@@ -150,7 +150,7 @@ No label exceeds 70%; the smallest class is 29%.
 | :--- | :--- |
 | `dataset.csv` | 217 labeled examples (final, 3 labels) |
 | `planning.md` | Design doc: labels, edge-case rules, metrics, AI tool plan |
-| `Copy of ai201_..._starter_clean.ipynb` | Colab fine-tuning notebook (label map + Groq prompt pre-filled) |
+| `Copy of ai201_..._starter_clean.ipynb` | Colab fine-tuning notebook (label map + system prompt pre-filled) |
 | `scrape_reddit.py`, `scrape_stage.py` | Reddit collection scripts |
 | `remap.json`, `staging_labeled.json` | LLM pre-labeling artifacts (transparency) |
 | `dataset_7label_backup.csv` | Original 7-label dataset, before the taxonomy revision |
