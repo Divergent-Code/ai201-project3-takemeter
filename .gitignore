@@ -12,6 +12,7 @@ venv/
 
 # IDEs and Editors
 .vscode/
+.claude/
 .cursor/
 .codex/
 .idea/
