@@ -118,7 +118,7 @@ was the single biggest data decision in the project (see §4).
 ## 6. Definition of Success
 
 Concrete threshold: the fine-tuned model should reach **≥ 70% overall accuracy** on the
-held-out test set **and beat the Groq `llama-3.3-70b-versatile` zero-shot baseline by a
+held-out test set **and beat the Claude Haiku (`claude-haiku-4-5-20251001`) zero-shot baseline by a
 clear margin** (not within noise), with **per-class F1 ≥ 0.60 on all three labels** —
 critically including `critical_analysis`, the smallest and hardest class. A model that
 hits 70% overall but scores ~0 F1 on `critical_analysis` is *not* a success: it would

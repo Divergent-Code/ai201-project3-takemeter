@@ -132,6 +132,10 @@ The model predicted `critical_analysis` for all 33 test examples — a total col
 | "Midsommar is the most overrated A24 film, period. Beautiful to look at, but completely hollow." | critical_analysis | 0.35 | Wrong — true label is `hot_take`. Bold quality judgment with no supporting evidence. |
 | "What I love about Shirley Jackson is how she weaponizes domesticity — the house in Hill House isn't just haunted, it's a trap built from the architecture of repression." | critical_analysis | 0.36 | Correct. The post argues that the house's horror is structurally tied to domestic repression — a specific thematic claim with evidence. |
 
+### Confidence calibration
+
+A well-calibrated model assigns higher confidence to predictions it gets right. The fine-tuned model shows no meaningful calibration signal. Correct predictions (true `critical_analysis` examples) had confidence scores in the range 0.35–0.37 — nearly identical to wrong predictions, which spanned 0.35–0.44. The highest-confidence prediction in the sample classifications (0.44, error #3: *Drag Me To Hell*) was wrong. The lowest-confidence correct prediction (0.35, *Midsommar* — also wrong) matches the same range. Because the model predicted `critical_analysis` for all 33 test examples, there is effectively no variation in predicted class — only marginal variation in softmax score — and that variation does not track accuracy. Confidence scores from this model should not be used as a reliability signal.
+
 ### Reflection: what the model learned vs. what I intended
 
 The intent was a classifier that keys on *whether a claim is argued* — supported by specific evidence — vs. *asserted* (stated without support) or *reacted to* (focused on felt experience). The confusion matrix reveals the model learned something much simpler: **predict `critical_analysis` for almost everything.**
@@ -163,4 +167,5 @@ The baseline (Claude Haiku, 78.8%) shows the argued-vs-asserted distinction *is*
 | `scrape_reddit.py`, `scrape_stage.py` | Reddit collection scripts |
 | `remap.json`, `staging_labeled.json` | LLM pre-labeling artifacts (transparency) |
 | `dataset_7label_backup.csv` | Original 7-label dataset, before the taxonomy revision |
-| `evaluation_results.json`, `confusion_matrix.png` | *To add from Colab* |
+| `evaluation_results.json` | Evaluation output: baseline and fine-tuned accuracy, test set size, label map |
+| `confusion_matrix.png` | Confusion matrix for the fine-tuned model on the test set |
