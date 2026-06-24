@@ -22,7 +22,7 @@ A fine-tuned text classifier that sorts horror-community posts by **discourse qu
 
 > Companion docs: design reasoning and edge-case rules live in `planning.md`. This README is the standalone final report.
 
-**Class Recording:** [Project 3 Recording](https://drive.google.com/file/d/1jflNPzeAv94TFGaUiJnlGScreXIwhiTX/view?usp=drive_link)
+**Demo Video:** [Project 3 Demo](https://drive.google.com/file/d/1jflNPzeAv94TFGaUiJnlGScreXIwhiTX/view?usp=drive_link)
 
 ---
 
