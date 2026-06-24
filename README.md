@@ -16,9 +16,13 @@
 ---
 # TakeMeter — Classifying Discourse Quality in Horror Communities
 
+![Python](https://img.shields.io/badge/Python-3.x-3776AB?logo=python&logoColor=white) ![Model](https://img.shields.io/badge/Model-DistilBERT-FFD21F?logo=huggingface&logoColor=black) ![Platform](https://img.shields.io/badge/Platform-Google%20Colab-F9AB00?logo=googlecolab&logoColor=white) ![Dataset](https://img.shields.io/badge/Dataset-217%20examples-4CAF50) ![Baseline](https://img.shields.io/badge/Baseline%20Claude%20Haiku-78.8%25-brightgreen) ![Fine-tuned](https://img.shields.io/badge/Fine--tuned%20DistilBERT-39.4%25-red)
+
 A fine-tuned text classifier that sorts horror-community posts by **discourse quality**: is a take an *argued analysis*, a *felt reaction*, or a *bare hot take*? Built on `distilbert-base-uncased`, fine-tuned on 217 hand-reviewed Reddit posts, and benchmarked against a Claude Haiku (`claude-haiku-4-5-20251001`) zero-shot baseline.
 
 > Companion docs: design reasoning and edge-case rules live in `planning.md`. This README is the standalone final report.
+
+**Class Recording:** [Project 3 Recording](https://drive.google.com/file/d/1jflNPzeAv94TFGaUiJnlGScreXIwhiTX/view?usp=drive_link)
 
 ---
 
