@@ -113,6 +113,12 @@ Kept 3 epochs (default). Val loss fell 1.085 → 1.066 → 1.033 and val accurac
 
 The model predicted `critical_analysis` for all 33 test examples — a total collapse to the majority class. Every `visceral_reaction` (11) and every `hot_take` (9) was misclassified as `critical_analysis`; only the 13 true `critical_analysis` examples were correctly identified. The pre-experiment hypothesis (heaviest confusion would be `critical_analysis ↔ hot_take`) proved too optimistic: the model doesn't confuse labels selectively at all — it simply ignores label distinctions entirely.
 
+|  | Pred: critical_analysis | Pred: visceral_reaction | Pred: hot_take |
+| :--- | :---: | :---: | :---: |
+| **True: critical_analysis** | 13 | 0 | 0 |
+| **True: visceral_reaction** | 11 | 0 | 0 |
+| **True: hot_take** | 9 | 0 | 0 |
+
 ![Confusion matrix](confusion_matrix.png)
 
 ### Three wrong predictions, analyzed
