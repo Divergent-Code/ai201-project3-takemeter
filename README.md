@@ -170,19 +170,19 @@ The baseline (Claude Haiku, 78.8%) shows the argued-vs-asserted distinction *is*
 
 ## 9. Deployed Interface
 
-A Gradio web app (`app.py`) classifies any free-text post using `llama-3.3-70b-versatile` via Groq and displays the predicted label, per-class confidence bars, and a one-sentence key-signal explanation.
+A Gradio web app (`app.py`) runs text through the fine-tuned `distilbert-base-uncased` model ([DivergentCode/takemeter](https://huggingface.co/DivergentCode/takemeter)) and displays the predicted label and per-class confidence scores.
 
 **Run locally:**
 ```bash
-pip install gradio groq
-GROQ_API_KEY=your_key python app.py
+pip install gradio transformers torch
+python app.py
 # opens at http://127.0.0.1:7860
 ```
 
 **Deploy to Hugging Face Spaces:**
 1. Create a new Space with the Gradio SDK
 2. Upload `app.py` and `requirements.txt`
-3. Add `GROQ_API_KEY` as a Space secret under Settings → Variables and secrets
+3. No secrets needed — the model loads from HuggingFace Hub automatically
 
 The interface includes three built-in example posts (one per label) to make the classifier immediately testable without requiring the user to write their own input.
 
@@ -229,7 +229,7 @@ Both disagreements involve the `hot_take` label pulling in the other direction �
 | `evaluation_results.json` | Evaluation output: baseline and fine-tuned accuracy, test set size, label map |
 | `confusion_matrix.png` | Confusion matrix for the fine-tuned model on the test set |
 | `app.py` | Gradio web interface (§9) — classifies text via Groq LLM |
-| `requirements.txt` | Python dependencies for the Gradio app |
+| `requirements.txt` | Python dependencies for the Gradio app (`gradio`, `transformers`, `torch`) |
 | `sample_for_annotation.py` | Generates stratified 30-example annotation sample (§10) |
 | `annotation_sheet.csv` | 30 examples with LLM second-annotator labels (§10) |
 | `annotation_key.csv` | Same 30 examples with original labels (§10) |
