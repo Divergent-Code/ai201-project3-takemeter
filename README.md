@@ -168,6 +168,36 @@ The baseline (Claude Haiku, 78.8%) shows the argued-vs-asserted distinction *is*
 
 3. **Failure-pattern analysis (post-evaluation — disclosed).** After evaluation I pasted all 20 misclassified test examples (every one predicted as `critical_analysis`) to an LLM and asked it to surface candidate error patterns. It proposed four: (a) *length bias* — longer, more elaborately phrased posts get pulled toward `critical_analysis` regardless of argumentative content; (b) *named-element bias* — posts that mention a specific film element (a sound, a scene, a character beat) are treated as analytical even when the mention only justifies a feeling; (c) *short-post default* — very short posts default to `hot_take` because they lack complexity markers, which is why all 20 errors ran in the opposite direction (toward `critical_analysis`, not away from it); (d) *absence-of-evidence blindness* — the model has no representation of "missing argument," so it can't penalize a post for lacking support. I verified (a), (b), and (d) by re-reading the errors: error #1 ("that creeping sense") is introspective and structurally complex despite having zero analytical content (supports a and d); error #2 ("complete and total garbage") is blunt but short — the model still predicted `critical_analysis`, which falsifies (c) as a standalone pattern. I discarded (c). The three verified patterns now appear in the §6 reflection.
 
+## 9. Inter-Annotator Reliability
+
+To test whether the §2 label definitions are clear enough for an independent reader to apply consistently, a second annotator labeled a stratified random sample of 30 examples (10 per class) using only the label definitions — no training examples, no knowledge of the original labels.
+
+**Second annotator:** `llama-3.3-70b-versatile` via Groq, zero-shot, given only the three label definitions from §2 as a system prompt. This mirrors a naive human annotator who has read the rubric but not seen the data.
+
+**Sampling:** 10 examples drawn randomly per class (seed 42) from the full 217-example dataset, shuffled before presentation so class order was not visible. See `sample_for_annotation.py` and `annotation_sheet.csv`.
+
+**Results (n = 30):**
+
+| Metric | Value |
+| :--- | :--- |
+| Percent agreement | 93.3% (28/30) |
+| Cohen's kappa | 0.900 |
+| Interpretation | Almost perfect (Landis & Koch scale) |
+
+**Per-label breakdown:**
+
+| Label | Agreed | Disagreed |
+| :--- | :---: | :---: |
+| critical_analysis | 9/10 | 1 |
+| visceral_reaction | 9/10 | 1 |
+| hot_take | 10/10 | 0 |
+
+**Disagreements (2 total):**
+- 1 original `critical_analysis` labeled `hot_take` by second annotator
+- 1 original `visceral_reaction` labeled `hot_take` by second annotator
+
+Both disagreements involve the `hot_take` label pulling in the other direction — consistent with the §2 note that the argued-vs-asserted boundary is where confusion is expected. The kappa of 0.900 indicates the definitions are sufficiently precise for reliable application by a naive reader. `hot_take` was the most consistently agreed-upon class (10/10), likely because unsupported bold assertions are the easiest signal to detect.
+
 ## Repo contents
 
 | File | What it is |
@@ -180,3 +210,8 @@ The baseline (Claude Haiku, 78.8%) shows the argued-vs-asserted distinction *is*
 | `dataset_7label_backup.csv` | Original 7-label dataset, before the taxonomy revision |
 | `evaluation_results.json` | Evaluation output: baseline and fine-tuned accuracy, test set size, label map |
 | `confusion_matrix.png` | Confusion matrix for the fine-tuned model on the test set |
+| `sample_for_annotation.py` | Generates stratified 30-example annotation sample (§9) |
+| `annotation_sheet.csv` | 30 examples with LLM second-annotator labels (§9) |
+| `annotation_key.csv` | Same 30 examples with original labels (§9) |
+| `compute_kappa.py` | Computes Cohen's kappa from annotation_sheet + key |
+| `llm_annotate.py` | LLM second-annotator script (Groq, llama-3.3-70b-versatile) |

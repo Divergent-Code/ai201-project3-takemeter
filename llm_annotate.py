@@ -1,25 +1,26 @@
 """
-Second-annotator pass using Claude (claude-haiku-4-5-20251001).
+Second-annotator pass using Groq (llama-3.3-70b-versatile).
 
-The model receives only the three label definitions — no examples from the dataset,
+The model receives only the three label definitions -- no examples from the dataset,
 no knowledge of the original labels. This mirrors a naive human annotator who has
 read the rubric but has not seen the data.
 
 Usage:
     python llm_annotate.py
 
+Requires GROQ_API_KEY environment variable.
 Writes second_label into annotation_sheet.csv in-place.
 """
 
 import csv
 import os
-import anthropic
+import groq
 
 SHEET = "annotation_sheet.csv"
-MODEL = "claude-haiku-4-5-20251001"
+MODEL = "llama-3.3-70b-versatile"
 VALID_LABELS = {"critical_analysis", "visceral_reaction", "hot_take"}
 
-SYSTEM_PROMPT = """You are a text classifier. Classify posts from horror film and literature communities into exactly one of three labels. Reply with only the label name — no explanation, no punctuation.
+SYSTEM_PROMPT = """You are a text classifier. Classify posts from horror film and literature communities into exactly one of three labels. Reply with only the label name -- no explanation, no punctuation.
 
 Labels:
 - critical_analysis: A structured argument about a work's themes, craft, pacing, subtext, or lore, backed by specific examples or reasoning. Argues or analyzes rather than asserts.
@@ -29,24 +30,25 @@ Labels:
 Output exactly one of: critical_analysis, visceral_reaction, hot_take"""
 
 
-def classify(client: anthropic.Anthropic, text: str) -> str:
-    response = client.messages.create(
+def classify(client: groq.Groq, text: str) -> str:
+    response = client.chat.completions.create(
         model=MODEL,
         max_tokens=20,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": text}],
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": text},
+        ],
     )
-    label = response.content[0].text.strip().lower()
+    label = response.choices[0].message.content.strip().lower()
     if label not in VALID_LABELS:
-        print(f"  [warn] unexpected response: {label!r} — defaulting to hot_take")
+        print(f"  [warn] unexpected response: {label!r} -- defaulting to hot_take")
         label = "hot_take"
     return label
 
 
 def main():
-    client = anthropic.Anthropic()
+    client = groq.Groq(api_key=os.environ["GROQ_API_KEY"])
 
-    rows = []
     with open(SHEET, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         fieldnames = reader.fieldnames

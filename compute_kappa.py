@@ -90,17 +90,17 @@ def main():
     print()
 
     print("Per-label agreement:")
-    print(f"  {'Label':<25} {'Orig→Same':>10} {'Orig→Diff':>10}")
+    print(f"  {'Label':<25} {'Orig->Same':>10} {'Orig->Diff':>10}")
     for label in LABELS:
         same = sum(1 for a, b in pairs if a == label and b == label)
         diff = sum(1 for a, b in pairs if a == label and b != label)
         print(f"  {label:<25} {same:>10} {diff:>10}")
 
     print()
-    print("Disagreement breakdown (original → second_label):")
+    print("Disagreement breakdown (original -> second_label):")
     disagreements = Counter((a, b) for a, b in pairs if a != b)
     for (a, b), count in sorted(disagreements.items(), key=lambda x: -x[1]):
-        print(f"  {a} → {b}: {count}")
+        print(f"  {a} -> {b}: {count}")
 
 
 if __name__ == "__main__":
